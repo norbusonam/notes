@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 )
@@ -13,6 +14,11 @@ type Note struct {
 }
 
 func main() {
+	port := "8080"
+	if os.Getenv("PORT") != "" {
+		port = os.Getenv("PORT")
+	}
+
 	var notes = []*Note{}
 
 	http.HandleFunc("/notes", func(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +111,5 @@ func main() {
 		}
 	})
 
-	http.ListenAndServe(":8080", nil)
-
+	http.ListenAndServe(":"+port, nil)
 }
