@@ -13,7 +13,7 @@ type Note struct {
 }
 
 func main() {
-	var notes = []Note{}
+	var notes = []*Note{}
 
 	http.HandleFunc("/notes", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -47,9 +47,59 @@ func main() {
 				return
 			}
 			// persist new note by appending to notes list
-			notes = append(notes, newNote)
+			notes = append(notes, &newNote)
 			w.WriteHeader(http.StatusCreated)
 			w.Write(newNoteJSON)
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/notes/", func(w http.ResponseWriter, r *http.Request) {
+		// get note by id
+		id := r.URL.Path[len("/notes/"):]
+		var note *Note
+		for _, n := range notes {
+			if n.Id == id {
+				note = n
+				break
+			}
+		}
+		// check if note is empty
+		if note == nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("note not found"))
+			return
+		}
+		switch r.Method {
+		case "PUT":
+			var updatedNote = r.FormValue("note")
+			// check if note is empty
+			if note.Note == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte("note is empty"))
+				return
+			}
+			// update note
+			note.Note = updatedNote
+			// convert updated note to json
+			updatedNoteJSON, err := json.Marshal(note)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
+			}
+			w.Write(updatedNoteJSON)
+		case "DELETE":
+			// delete note
+			for i, n := range notes {
+				if n.Id == id {
+					notes = append(notes[:i], notes[i+1:]...)
+					break
+				}
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("note deleted"))
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
