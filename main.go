@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 
@@ -22,6 +23,7 @@ func main() {
 	var notes = []*Note{}
 
 	http.HandleFunc("/notes", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Method, r.URL.Path)
 		switch r.Method {
 		case "GET":
 			// convert notes to json list
@@ -62,6 +64,7 @@ func main() {
 	})
 
 	http.HandleFunc("/notes/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println(r.Method, r.URL.Path)
 		// get note by id
 		id := r.URL.Path[len("/notes/"):]
 		var note *Note
@@ -111,5 +114,6 @@ func main() {
 		}
 	})
 
+	log.Println("Listening on port " + port)
 	http.ListenAndServe(":"+port, nil)
 }
