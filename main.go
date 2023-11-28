@@ -22,6 +22,10 @@ func main() {
 
 	var notes = []*Note{}
 
+	// serve static files
+	fs := http.FileServer(http.Dir("./public"))
+	http.Handle("/", fs)
+
 	http.HandleFunc("/notes", func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.Method, r.URL.Path)
 		switch r.Method {
